@@ -1,0 +1,16 @@
+student_id,name,email,phone,enrollment_date
+S1001,Alice Johnson,alice.johnson@university.edu,+1234567890,2023-09-01
+S1002,Bob Smith,bob.smith@university.edu,+1234567891,2023-09-01
+S1003,Carol Davis,carol.davis@university.edu,+1234567892,2023-09-01
+S1004,David Wilson,david.wilson@university.edu,+1234567893,2023-09-01
+S1005,Eva Brown,eva.brown@university.edu,+1234567894,2023-09-01
+S1006,Frank Miller,frank.miller@university.edu,+1234567895,2023-09-01
+S1007,Grace Lee,grace.lee@university.edu,+1234567896,2023-09-01
+S1008,Henry Taylor,henry.taylor@university.edu,+1234567897,2023-09-01
+S1009,Iris Clark,iris.clark@university.edu,+1234567898,2023-09-01
+S1010,Jack Anderson,jack.anderson@university.edu,+1234567899,2023-09-01
+S1011,Karen Thomas,karen.thomas@university.edu,+1234567800,2023-09-01
+S1012,Liam Jackson,liam.jackson@university.edu,+1234567801,2023-09-01
+S1013,Mia White,mia.white@university.edu,+1234567802,2023-09-01
+S1014,Noah Harris,noah.harris@university.edu,+1234567803,2023-09-01
+S1015,Olivia Martin,olivia.martin@university.edu,+1234567804,2023-09-01

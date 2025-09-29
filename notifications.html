@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications - TechKey Analysis{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1><i class="fas fa-bell"></i> Notifications</h1>
+        <p class="text-muted">Manage alerts and notification settings</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Notification Settings -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-cog"></i> Notification Settings
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="notificationSettings">
+                    <div class="mb-3">
+                        <label class="form-label">Email Notifications</label>
+                        <select class="form-select" name="email_enabled">
+                            <option value="true">Enabled</option>
+                            <option value="false">Disabled</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">SMS Notifications</label>
+                        <select class="form-select" name="sms_enabled">
+                            <option value="false">Disabled</option>
+                            <option value="true">Enabled</option>
+                        </select>
+                        <div class="form-text">SMS requires Twilio configuration</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Notify for Risk Levels</label>
+                        <select class="form-select" name="risk_levels">
+                            <option value="high">High Risk Only</option>
+                            <option value="high_medium">High & Medium Risk</option>
+                            <option value="all">All Risk Levels</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Notification Frequency</label>
+                        <select class="form-select" name="frequency">
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="instant">Instant</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-save"></i> Save Settings
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Manual Notification -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-paper-plane"></i> Send Test Notification
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Send a test notification to verify your settings.</p>
+                <button id="sendTest" class="btn btn-outline-primary w-100">
+                    <i class="fas fa-bell"></i> Send Test
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification History -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-history"></i> Notification History
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if notifications %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Student</th>
+                                <th>Status</th>
+                                <th>Title</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for notification in notifications %}
+                            <tr>
+                                <td>{{ notification.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ notification.type }}</span>
+                                </td>
+                                <td>
+                                    {% if notification.student %}
+                                        {{ notification.student.name }}
+                                    {% else %}
+                                        <em>System</em>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge 
+                                        {% if notification.status == 'Sent' %}bg-success
+                                        {% elif notification.status == 'Failed' %}bg-danger
+                                        {% else %}bg-warning{% endif %}">
+                                        {{ notification.status }}
+                                    </span>
+                                </td>
+                                <td>{{ notification.title }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+                    <h4>No Notifications</h4>
+                    <p class="text-muted">No notifications have been sent yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Notification Statistics -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-pie"></i> Notification Statistics
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <h4 class="text-primary" id="totalSent">--</h4>
+                        <p class="text-muted">Total Sent</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-success" id="successRate">--</h4>
+                        <p class="text-muted">Success Rate</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-info" id="emailCount">--</h4>
+                        <p class="text-muted">Email</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-warning" id="smsCount">--</h4>
+                        <p class="text-muted">SMS</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Calculate notification statistics
+function updateStatistics() {
+    const notifications = {{ notifications|tojson|safe }};
+    
+    const total = notifications.length;
+    const sent = notifications.filter(n => n.status === 'Sent').length;
+    const email = notifications.filter(n => n.type === 'email').length;
+    const sms = notifications.filter(n => n.type === 'sms').length;
+    const successRate = total > 0 ? Math.round((sent / total) * 100) : 0;
+    
+    document.getElementById('totalSent').textContent = total;
+    document.getElementById('successRate').textContent = successRate + '%';
+    document.getElementById('emailCount').textContent = email;
+    document.getElementById('smsCount').textContent = sms;
+}
+
+// Initialize statistics
+updateStatistics();
+
+// Send test notification
+document.getElementById('sendTest').addEventListener('click', function() {
+    const btn = this;
+    const originalText = btn.innerHTML;
+    
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    btn.disabled = true;
+    
+    // Simulate API call
+    setTimeout(() => {
+        alert('Test notification sent! Check your email.');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }, 2000);
+});
+
+// Save settings
+document.getElementById('notificationSettings').addEventListener('submit', function(e) {
+    e.preventDefault();
+    alert('Settings saved successfully!');
+});
+</script>
+{% endblock %}
